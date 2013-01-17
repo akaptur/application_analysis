@@ -8,7 +8,7 @@ import json
 working_file = '/tmp/tempfile.txt'
 
 def code_input():
-    data = json.load(open('/tmp/appdata.json'))
+    data = json.load(open('appdata.json'))
     return data
 
 def remove_line(working_file):
@@ -16,7 +16,7 @@ def remove_line(working_file):
     open(working_file, 'w').write(lines)
 
 def put_in_working_file(data):
-    open(working_file, 'w').write(data)
+    open(working_file, 'w').write(data.encode('ascii', 'replace'))
 
 def build_re_match():
     separator = r'''\W*'''
@@ -61,6 +61,7 @@ def try_fizzbuzz(fizzbuzz):
     """Tries a fizzbuzz with many languages and edits
     Returns working language or None"""
     languages = ['python', 'ruby', 'node']
+    data = dict(zip(languages,repeat(0)) + zip(patterns.keys(),repeat(0)))
     put_in_working_file(fizzbuzz)
     for i in range(3):
         for lang in languages:
@@ -69,9 +70,11 @@ def try_fizzbuzz(fizzbuzz):
             match = try_working_file(lang)
             if match:
                 print 'match'
-                return lang, match
+                data[lang] = 1
+                data[match] = 1
+                return data
         remove_line(working_file)
-    return None, None
+    return data
 
 def try_working_file(lang):
     p = Popen([lang, working_file], stdout=PIPE, stderr=PIPE)
@@ -86,9 +89,16 @@ def success(fizzbuzz_output, **patterns):
             return result
     return None
 
-if __name__ == '__main__':
+def build_feature_set():
     app_data = code_input()
-    outputs = []
+    feature_set = {}
+    for app in app_data:
+        feature_set[app['id']] = try_fizzbuzz(app['data']['fizzbuzz'])
+    return feature_set
+
+def verbose_build():
+    app_data = code_input()
+    outputs = {}
     for app in app_data:
         print app.keys()
         print app['data'].keys()
@@ -96,5 +106,9 @@ if __name__ == '__main__':
         print 'attempting', app['id']
         print app['data']['fizzbuzz']
         print '---'
-        outputs.append(try_fizzbuzz(app['data']['fizzbuzz']))
+        outputs[app['id']] = try_fizzbuzz(app['data']['fizzbuzz'])
         print outputs
+
+
+if __name__ == '__main__':
+    verbose_build()
