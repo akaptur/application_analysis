@@ -32,10 +32,17 @@ def says_learn(app):
 
 
 def all_link_data(app):
-    not_factors = ['all_link_data', 'get_apps']
+    not_factors = ['all_link_data', 'get_apps', 'loop']
     factors = [(name, func) for (name, func) in globals().items() if callable(func) and name not in not_factors]
     data = dict((name, func(app)) for (name, func) in factors)
     return data
+
+def loop():
+    apps = get_apps()
+    feature_set = {}
+    for app in apps:
+        feature_set[app['id']] = all_link_data(app)
+    return feature_set
 
 if __name__ == '__main__':
     apps = get_apps()
