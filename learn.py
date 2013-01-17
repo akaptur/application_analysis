@@ -45,7 +45,7 @@ class Classifier(object):
 
     def perturb_weights(self, amount=.1):
         for weight in self.weights:
-            self.weights += (random.random * 2 - 1) * .1
+            self.weights += (random.random * 2 - 1) * amount
 
     def reset_weights_to_best(self):
         self.weights = {k:v for k,v in self.best_weights.iteritems()}
