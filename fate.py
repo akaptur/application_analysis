@@ -9,12 +9,6 @@ def get_apps():
     return apps
 
 
-
-
-
-
-
-
 if __name__ == '__main__':
     apps = get_apps()
     outcome = dict((app['id'], app['admitted']) for app in apps)
@@ -26,5 +20,10 @@ if __name__ == '__main__':
     print big_feature_set
     print outcome
 
-
+    c = learn.Classifier(big_feature_set, outcome)
+    while True:
+        c.try_weights()
+        print c.randomize_weights()
+        print c.best_weights, c.best_weights_score
+        raw_input()
 

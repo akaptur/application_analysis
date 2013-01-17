@@ -52,13 +52,19 @@ class Classifier(object):
 
     def try_weights(self):
         app_totals = {app_id: 0 for app_id in self.app_ids}
+        normalization = {}
+        for feature in self.feature_set.values()[0]:
+            normalization[feature] = max(self.feature_set[app_id][feature] for app_id in self.app_ids)
+            if normalization[feature] == 0:
+                normalization[feature] = 1.0
+        print 'normalizations:', normalization
         for app_id in self.app_ids:
             for feature, value in self.feature_set[app_id].iteritems():
-                app_totals[app_id] += self.weights[feature] * value
+                app_totals[app_id] += self.weights[feature] * value/normalization[feature]
         print 'predictive scores:', app_totals
-        threshold = 0
+        threshold = .5
         print self.app_ids
-        guesses = {app_id : (1 if app_totals[app_id] > threshold else -1) for app_id in self.app_ids}
+        guesses = {app_id : (1 if app_totals[app_id] > threshold else 0) for app_id in self.app_ids}
         print 'guesses:', guesses
         print 'real:   ', self.answers
         scores = [(1 if self.answers[app_id] == guesses[app_id] else 0) for app_id in self.app_ids]
