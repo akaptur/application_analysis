@@ -3,17 +3,20 @@ import re
 from subprocess import Popen, PIPE
 from itertools import repeat
 import pdb
+import json
 
 working_file = '/tmp/tempfile.txt'
 
 def code_input():
-    return glob('*.txt')
+    data = json.load(open('/tmp/appdata.json'))
+    return data
 
 def remove_line(working_file):
     lines = ''.join(open(working_file).readlines()[1:])
     open(working_file, 'w').write(lines)
 
-put_file_in_working_file = lambda: open(working_file, 'w').write(open(filename).read())
+def put_in_working_file(data):
+    open(working_file, 'w').write(data)
 
 def build_re_match():
     separator = r'''\W*'''
@@ -28,6 +31,7 @@ def build_re_match():
         else:
            canon += str(i)
         canon += separator
+    canon += '$'
     return canon
 
 def no_fizzbuzz():
@@ -39,27 +43,31 @@ def no_fizzbuzz():
         else:
             wrong += str(i)
         wrong += separator
+    wrong += '$'
     return wrong
 
 def wrong_range():
     canon = build_re_match()
     new_endpoint = canon.rfind('buzz')
-    return canon[:new_endpoint]
+    wrong = canon[:new_endpoint]
+    wrong += '$'
+    return wrong
 
 patterns = {'success': build_re_match(),
-            'logic_error': no_fizzbuzz()
+            'logic_error': no_fizzbuzz(),
             'range_error': wrong_range()}
 
-def try_fizzbuzz(filename):
+def try_fizzbuzz(fizzbuzz):
     """Tries a fizzbuzz with many languages and edits
     Returns working language or None"""
     languages = ['python', 'ruby', 'node']
-    put_file_in_working_file()
+    put_in_working_file(fizzbuzz)
     for i in range(3):
         for lang in languages:
             print 'trying to run with', lang, 'with', i, 'lines removed'
             print open(working_file).read()
             match = try_working_file(lang)
+            if match:
                 print 'match'
                 return lang, match
         remove_line(working_file)
@@ -70,7 +78,7 @@ def try_working_file(lang):
     return success_with_patterns(p.stdout.read())
 
 def success_with_patterns(fizzbuzz_output):
-    return success(fizzbuzz_output, patterns)
+    return success(fizzbuzz_output, **patterns)
 
 def success(fizzbuzz_output, **patterns):
     for result, matcher in patterns.iteritems():
@@ -79,13 +87,14 @@ def success(fizzbuzz_output, **patterns):
     return None
 
 if __name__ == '__main__':
-    code_files = code_input()
+    app_data = code_input()
     outputs = []
-    for filename in code_files:
+    for app in app_data:
+        print app.keys()
+        print app['data'].keys()
         print '---'
-        print 'attempting', filename
-        print open(filename).read()
+        print 'attempting', app['id']
+        print app['data']['fizzbuzz']
         print '---'
-        outputs.append(try_fizzbuzz(filename))
+        outputs.append(try_fizzbuzz(app['data']['fizzbuzz']))
         print outputs
-        # pdb.set_trace()
